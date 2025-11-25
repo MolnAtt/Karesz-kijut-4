@@ -24,33 +24,75 @@ namespace Karesz
 		{
 			Robot karesz = new Robot("Karesz", 1000, 1000, 1000, 1000, 0, 20, 15, r.Next(4));
 			Betölt(betöltendő_pálya);
-			Vektor[] kijáratok = new Vektor[]
-			{
-				new Vektor(0, 15),
-				new Vektor(40, 15),
-				new Vektor(20, 0),
-				new Vektor(20, 30),
-			};
-			Vektor kijárat = kijáratok[r.Next(4)];
-			pálya[kijárat] = 0;
 
-			List<Vektor> nyulvanyok_fent = Pozíciók_Vízszintes(0).OrderBy(x => r.Next()).Take(r.Next(2, 5)).ToList();
-			List<Vektor> nyulvanyok_jobbra = Pozíciók_Függőleges(39).OrderBy(x => r.Next()).Take(r.Next(2, 7)).ToList();
-			List<Vektor> nyulvanyok_lent = Pozíciók_Vízszintes(29).OrderBy(x => r.Next()).Take(r.Next(2, 5)).ToList();
-			List<Vektor> nyulvanyok_balra = Pozíciók_Függőleges(0).OrderBy(x => r.Next()).Take(r.Next(2,7)).ToList();
+			List<Vektor> nyulvanyok_fent = Pozíciók_Vízszintes(0).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
+			List<Vektor> nyulvanyok_jobbra = Pozíciók_Függőleges(39).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
+			List<Vektor> nyulvanyok_lent = Pozíciók_Vízszintes(29).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
+			List<Vektor> nyulvanyok_balra = Pozíciók_Függőleges(0).OrderBy(x => r.Next()).Take(r.Next(5,10)).ToList();
 
-			Nyulvanyrajzolas(pálya, nyulvanyok_fent, new Vektor(0, 1));
-			Nyulvanyrajzolas(pálya, nyulvanyok_jobbra, new Vektor(-1, 0));
-			Nyulvanyrajzolas(pálya, nyulvanyok_lent, new Vektor(0, -1));
-			Nyulvanyrajzolas(pálya, nyulvanyok_fent, new Vektor(1, 0));
+			Nyulvanyrajzolas(pálya, nyulvanyok_fent);
+			Nyulvanyrajzolas(pálya, nyulvanyok_jobbra);
+			Nyulvanyrajzolas(pálya, nyulvanyok_lent);
+			Nyulvanyrajzolas(pálya, nyulvanyok_balra);
 
 			Frissít();
 			
 		}
 
-		void Nyulvanyrajzolas(Pálya pálya, List<Vektor> nyulvanyok, Vektor első_irany)
+		int Hossz(Vektor p)
 		{
-			
+			if (p.Y == 0 || p.Y == 30)
+			{
+				if (p.X < 20)
+					return p.X - 2;
+				else
+					return 40 - p.X - 2;
+			}
+			else if (p.X == 0 || p.X == 40)
+			{
+				if (p.Y < 15)
+					return p.Y - 2;
+				else
+					return 30 - p.Y - 2;
+			}
+			else return -1;
+		}
+
+		void Nyulvanyrajzolas(Pálya pálya, List<Vektor> nyulvanyok)
+		{
+			foreach (Vektor nyulvany in nyulvanyok)
+			{
+				int hossz = Math.Max(1,Math.Min(Hossz(nyulvany), 14));
+				Vektor pont = nyulvany;
+
+				Vektor irány;
+
+				if (nyulvany.X == 0)
+				{
+					irány = new Vektor(1, 0);
+				}
+				else if (nyulvany.X == 40)
+				{
+					irány = new Vektor(-1, 0);
+				}
+				else if (nyulvany.Y == 0)
+				{
+					irány = new Vektor(0, 1);
+				}
+				else if (nyulvany.Y == 30)
+				{
+					irány = new Vektor(0, -1);
+				}
+				else {
+					irány = new Vektor(-1, -1);
+				}
+
+				for (int i = 0; i < hossz; i++)
+					{
+						pálya[pont] = 1;
+						pont += irány;
+					}
+			}
 		}
 	}
 }
