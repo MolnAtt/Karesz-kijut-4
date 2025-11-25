@@ -26,14 +26,39 @@ namespace Karesz
 			Betölt(betöltendő_pálya);
 
 			List<Vektor> nyulvanyok_fent = Pozíciók_Vízszintes(0).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
-			List<Vektor> nyulvanyok_jobbra = Pozíciók_Függőleges(39).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
-			List<Vektor> nyulvanyok_lent = Pozíciók_Vízszintes(29).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
+			List<Vektor> nyulvanyok_jobbra = Pozíciók_Függőleges(40).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
+			List<Vektor> nyulvanyok_lent = Pozíciók_Vízszintes(30).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();
 			List<Vektor> nyulvanyok_balra = Pozíciók_Függőleges(0).OrderBy(x => r.Next()).Take(r.Next(5,10)).ToList();
 
 			Nyulvanyrajzolas(pálya, nyulvanyok_fent);
 			Nyulvanyrajzolas(pálya, nyulvanyok_jobbra);
 			Nyulvanyrajzolas(pálya, nyulvanyok_lent);
 			Nyulvanyrajzolas(pálya, nyulvanyok_balra);
+
+			HashSet<Vektor> foglaltak = nyulvanyok_balra.Union(nyulvanyok_fent.Union(nyulvanyok_jobbra.Union(nyulvanyok_lent))).ToHashSet();
+
+			HashSet<Vektor> pozíciók = Pozíciók_Vízszintes(0).Union(Pozíciók_Vízszintes(30).Union(Pozíciók_Függőleges(0).Union(Pozíciók_Függőleges(40)))).ToHashSet();
+			HashSet<Vektor> sarkok = new HashSet<Vektor> 
+			{ 
+				new Vektor(0, 0), 
+				new Vektor(40, 0), 
+				new Vektor(0, 30), 
+				new Vektor(40, 30), 
+			};
+
+			foreach (Vektor foglalt in foglaltak)
+			{
+				pozíciók.Remove(foglalt);
+			}
+
+			foreach (Vektor sarok in sarkok)
+			{
+				pozíciók.Remove(sarok);
+			}
+
+			Vektor kijárat = pozíciók.ToList().OrderBy(x => r.Next()).First();
+
+			pálya[kijárat] = 0;
 
 			Frissít();
 			
