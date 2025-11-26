@@ -125,7 +125,7 @@ namespace Karesz
 				Control_Textjének_frissítése(pozícióYtextbox, $"{Robot.akit_kiválasztottak.H.Y}");
 				Control_Textjének_frissítése(időtextbox, $"{idő}");
 				Control_Textjének_frissítése(hőtextbox, $"{Robot.akit_kiválasztottak.Hőmérő()}");
-				Control_Textjének_frissítése(ultrahangtextbox, $"{Robot.akit_kiválasztottak.UltrahangSzenzor()}");
+				Control_Textjének_frissítése(ultrahangtextbox, $"{Robot.uh(Robot.akit_kiválasztottak)}");
 				for (int szín = 2; szín < 7; szín++)
 					Control_Textjének_frissítése(kőtextboxok[szín - 2], $"{Robot.akit_kiválasztottak.Köveinek_száma_ebből(szín)}");
 				karesznagyításkeret.BackgroundImage = Robot.akit_kiválasztottak.Iránykép();
