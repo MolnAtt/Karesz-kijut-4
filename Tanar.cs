@@ -22,7 +22,7 @@ namespace Karesz
 
 		void TANÁR_ROBOTJAI()
 		{
-			Robot karesz = new Robot("Karesz", 1000, 1000, 1000, 1000, 0, 20, 15, r.Next(4));
+			Robot karesz = new Robot("Karesz", 1000, 1000, 1000, 1000, 0, 20, 15, r.Next(4), false, false);
 			Betölt(betöltendő_pálya);
 
 			List<Vektor> nyulvanyok_fent = Pozíciók_Vízszintes(0).OrderBy(x => r.Next()).Take(r.Next(5, 10)).ToList();

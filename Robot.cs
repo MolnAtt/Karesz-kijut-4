@@ -24,6 +24,7 @@ namespace Karesz
 			public static int ok_száma { get => Robot.lista.Count; }
 			public static ModuloSzam megfigyeltindex;
 			public static Robot akit_kiválasztottak { get => lista[megfigyeltindex.ToInt()]; }
+			public static int uh(Robot r) => r.Akadálytávolság(r.H, r.v);
 			#endregion
 			#region statikus metódusok
 			public static Robot Get(string n) => Robot.lista.First(x => x.Név == n);
@@ -61,7 +62,8 @@ namespace Karesz
 			Vektor v;
 			int[] kődb;
 			Action feladat;
-
+			bool uh_engedélyezve;
+			bool szuh_engedélyezve;
 			// cooperative scheduling
 			Thread szál;
 
@@ -125,7 +127,7 @@ namespace Karesz
 			/// <param name="kődb">induláskor a zsebeiben lévő kövek száma</param>
 			/// <param name="szülőform">az eredeti form, a visszahivatkozáshoz kell</param>
 			/// <param name="pálya">a pálya, amin a robot mozog</param>
-			public Robot(string név, Bitmap[] képkészlet, int[] kődb, Vektor h, Vektor v )
+			public Robot(string név, Bitmap[] képkészlet, int[] kődb, Vektor h, Vektor v, bool uh_engedélyezve=true, bool szuh_engedélyezve=true)
 			{
 				this.Név = név;
 				this.h = h;
@@ -133,6 +135,9 @@ namespace Karesz
 				this.képkészlet = képkészlet;
 				this.kődb = kődb;
 				this.helyigény = h;
+				this.uh_engedélyezve = uh_engedélyezve;
+				this.szuh_engedélyezve = szuh_engedélyezve;
+
 				// scheduler
 				this.jelzőlámpa = new AutoResetEvent(false);
 				this.duda = new AutoResetEvent(false);
@@ -145,27 +150,29 @@ namespace Karesz
 
 				Robot.lista.Add(this);
 			}
-			public Robot(string adottnév, int[] indulókövek, Vektor hely, Vektor sebesség)
+			public Robot(string adottnév, int[] indulókövek, Vektor hely, Vektor sebesség,bool uh_engedélyezve= true, bool szuh_engedélyezve = true)
 				: this(adottnév, képkészlet_karesz,
 						indulókövek,
 						hely,
-						sebesség
+						sebesség, 
+						uh_engedélyezve, 
+						szuh_engedélyezve
 						)
 			{ }
-			public Robot(string adottnév, int[] indulókövek, int x, int y, int f) :
-				this(adottnév, indulókövek, new Vektor(x, y), new Vektor(f))
+			public Robot(string adottnév, int[] indulókövek, int x, int y, int f, bool uh_engedélyezve = true, bool szuh_engedélyezve = true) :
+				this(adottnév, indulókövek, new Vektor(x, y), new Vektor(f), uh_engedélyezve, szuh_engedélyezve)
 			{ }
-			public Robot(string adottnév, Bitmap[] képkészlet, int fekete_db, int piros_db, int zöld_db, int sárga_db, int hó_db, int x, int y, int f) :
-							this(adottnév, képkészlet, new int[] { fekete_db, piros_db, zöld_db, sárga_db, hó_db }, new Vektor(x, y), new Vektor(f))
+			public Robot(string adottnév, Bitmap[] képkészlet, int fekete_db, int piros_db, int zöld_db, int sárga_db, int hó_db, int x, int y, int f, bool uh_engedélyezve = true, bool szuh_engedélyezve = true) :
+							this(adottnév, képkészlet, new int[] { fekete_db, piros_db, zöld_db, sárga_db, hó_db }, new Vektor(x, y), new Vektor(f), uh_engedélyezve, szuh_engedélyezve)
 			{ }
-			public Robot(string adottnév, int fekete_db, int piros_db, int zöld_db, int sárga_db, int hó_db, int x, int y, int f) :
-							this(adottnév, new int[] { fekete_db, piros_db, zöld_db, sárga_db, hó_db }, new Vektor(x, y), new Vektor(f))
+			public Robot(string adottnév, int fekete_db, int piros_db, int zöld_db, int sárga_db, int hó_db, int x, int y, int f, bool uh_engedélyezve = true, bool szuh_engedélyezve = true) :
+							this(adottnév, new int[] { fekete_db, piros_db, zöld_db, sárga_db, hó_db }, new Vektor(x, y), new Vektor(f),uh_engedélyezve, szuh_engedélyezve)
 			{ }
-			public Robot(string adottnév, int x, int y, int f) :
-				this(adottnév, 0, 0, 0, 0, 0, x, y, f)
+			public Robot(string adottnév, int x, int y, int f, bool uh_engedélyezve = true, bool szuh_engedélyezve = true) :
+				this(adottnév, 0, 0, 0, 0, 0, x, y, f, uh_engedélyezve, szuh_engedélyezve)
 			{ }
-			public Robot(string adottnév, int x, int y) :
-				this(adottnév, x, y, 0)
+			public Robot(string adottnév, int x, int y, bool uh_engedélyezve= true, bool szuh_engedélyezve = true) :
+				this(adottnév, x, y, 0, uh_engedélyezve, szuh_engedélyezve)
 			{ }
 			public Robot(string adottnév) :
 				this(adottnév, 5, 28)
@@ -281,11 +288,13 @@ namespace Karesz
 				else
 					pálya.LegyenItt(H, fekete);
 			}
+
+			void Meghal() => Robot.halállista.Add(this);
 			static void Halállistához(Func<Robot, bool> predikátum)
 			{
 				foreach (Robot robot in Robot.lista)
 					if (predikátum(robot))
-						Robot.halállista.Add(robot);
+						robot.Meghal();
 			}
 			static void Halállistához(Func<Robot, Robot, bool> predikátum)
 			{
@@ -293,8 +302,8 @@ namespace Karesz
 					for (int j = i+1; j < Robot.lista.Count; j++)
 						if (predikátum(Robot.lista[i], Robot.lista[j]))
 						{
-							Robot.halállista.Add(Robot.lista[i]);
-							Robot.halállista.Add(Robot.lista[j]);
+							lista[i].Meghal();
+							lista[j].Meghal();
 						}
 			}
 			//void Start_or_Resume()
@@ -438,9 +447,26 @@ namespace Karesz
 			/// megadja, hogy milyen messze van a robot előtti legközelebbi olyan objektum, amely vissza tudja verni a hangot (per pill. másik robot vagy fal)
 			/// </summary>
 			/// <returns></returns>
-			public int UltrahangSzenzor() => Akadálytávolság(H, v);
+			public int UltrahangSzenzor()
+			{
+				if (!this.uh_engedélyezve)
+				{
+					Mondd("Súlyos hibát követtem el, nem szabadott volna ultrahangszenzort használnom!");
+					Meghal();
+					return -1;
+				}
+				return Akadálytávolság(H, v);
+			}
 			public (int, int, int) SzélesUltrahangSzenzor()
-				=> (Akadálytávolság(H + v.Forgatott(balra), v), Akadálytávolság(H, v), Akadálytávolság(H + v.Forgatott(jobbra), v));
+			{
+				if (!this.szuh_engedélyezve)
+				{
+					Mondd("Súlyos hibát követtem el, nem szabadott volna ultrahangszenzort használnom!");
+					Meghal();
+					return (-1, -1, -1);
+				}
+				return (Akadálytávolság(H + v.Forgatott(balra), v), Akadálytávolság(H, v), Akadálytávolság(H + v.Forgatott(jobbra), v));
+			}
 
 
 			int Akadálytávolság(Vektor hely, Vektor sebesség)
